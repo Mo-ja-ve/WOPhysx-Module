@@ -1,18 +1,36 @@
 #include "WOPhysx.h"
 
+/************************************************************/
+/*              WOPHysx function definitions                */
+/************************************************************/
 namespace Aftr {
-
-    WOPhysx* WOPhysx::New() {
-
-        WOPhysx* WOpx = new WOPhysx();
-        WOpx->init();
-
-        return WOpx;
-    }
 
     WOPhysx::~WOPhysx() { }
 
     WOPhysx::WOPhysx() : WO(), IFace(this) {  }
+
+
+    WOPhysx* WOPhysx::New(const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst) {
+
+        WOPhysx* WOpx = new WOPhysx();
+        WOpx->init();
+        WOpx->onCreate(path, scale, mst);
+
+        return WOpx;
+    }
+
+    void WOPhysx::init() {
+
+        /***     physx init stuff      ***/
+        gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorcallback);
+        gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, physx::PxTolerancesScale(), 0, NULL);
+        physx::PxSceneDesc gSceneDesc(gPhysics->getTolerancesScale());
+
+        gSceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
+        gSceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(2);
+
+        gScene = gPhysics->createScene(gSceneDesc);
+    }
 
     void WOPhysx::onCreate(const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst) {
 
@@ -30,18 +48,4 @@ namespace Aftr {
         actor->userData = this;
         gScene->addActor(*actor);
     }
-
-    void WOPhysx::init() {
-
-        /***     physx init stuff      ***/
-        gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorcallback);
-        gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, physx::PxTolerancesScale(), 0, NULL);
-        physx::PxSceneDesc gSceneDesc(gPhysics->getTolerancesScale());
-
-        gSceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
-        gSceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(2);
-
-        gScene = gPhysics->createScene(gSceneDesc);
-    }
-
 }

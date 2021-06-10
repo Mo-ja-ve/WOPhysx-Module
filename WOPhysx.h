@@ -10,7 +10,7 @@ namespace Aftr{
     public:
         ~WOPhysx();
         WOPhysx();
-        static WOPhysx* New();
+        static WOPhysx* New(const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst);
         void init();
         void onCreate(const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst);
 
