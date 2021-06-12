@@ -10,7 +10,7 @@ namespace Aftr {
     WOPhysx::WOPhysx() : WO(), IFace(this) {  }
 
 
-    WOPhysx* WOPhysx::New(const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst) {
+    WOPhysx* WOPhysx::New( const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst) {
 
         WOPhysx* WOpx = new WOPhysx();
         WOpx->init();
@@ -25,6 +25,7 @@ namespace Aftr {
         gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorcallback);
         gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, physx::PxTolerancesScale(), 0, NULL);
         physx::PxSceneDesc gSceneDesc(gPhysics->getTolerancesScale());
+        gSceneDesc.flags.set(physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS);
 
         gSceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
         gSceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(2);
@@ -47,5 +48,25 @@ namespace Aftr {
 
         actor->userData = this;
         gScene->addActor(*actor);
+    }
+
+    void WOPhysx::updatePoseFromPhysx() {
+
+        physx::PxMat44 m(this->actor->getGlobalPose().q);
+        Mat4 m2;
+
+        for (int i = 0; i < 16; i++) {
+            m2[i] = m(i % 4, i / 4);
+        }
+        this->setDisplayMatrix(m2);
+        this->setPosition(this->actor->getGlobalPose().p.x, this->actor->getGlobalPose().p.y, this->actor->getGlobalPose().p.z);
+    }
+
+    void WOPhysx::setPosition(float x, float y, float z) {
+
+        WO::setPosition(x, y, z);
+        physx::PxTransform t = this->actor->getGlobalPose();
+        t.p = physx::PxVec3(x, y, z);
+        this->actor->setGlobalPose(t);
     }
 }
