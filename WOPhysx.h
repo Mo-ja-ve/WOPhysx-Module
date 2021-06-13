@@ -4,7 +4,7 @@
 #define WOPHYSX_H
 
 #include "WO.h"
-
+#include "Mat4.h"
 
 namespace Aftr{
 

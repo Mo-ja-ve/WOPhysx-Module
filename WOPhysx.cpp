@@ -26,6 +26,7 @@ namespace Aftr {
         gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, physx::PxTolerancesScale(), 0, NULL);
         physx::PxSceneDesc gSceneDesc(gPhysics->getTolerancesScale());
         gSceneDesc.flags.set(physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS);
+        gSceneDesc.gravity = physx::PxVec3(0.0f, 0.0f ,-9.81f);
 
         gSceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
         gSceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(2);
