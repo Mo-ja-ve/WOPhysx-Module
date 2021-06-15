@@ -1,48 +1,49 @@
-#include "WOPhysx.h"
+#include "WOPhysxGround.h"
 
 /************************************************************/
 /*              WOPHysx function definitions                */
 /************************************************************/
 namespace Aftr {
 
-    WOPhysx::~WOPhysx() { }
+    WOPhysxGround::~WOPhysxGround() { }
 
-    WOPhysx::WOPhysx() : WO(), IFace(this) {  }
+    WOPhysxGround::WOPhysxGround() : WO(), IFace(this) {  }
 
 
-    WOPhysx* WOPhysx::New( const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst, physx::PxScene *gScene) {
+    WOPhysxGround* WOPhysxGround::New(const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst) {
 
-        WOPhysx* WOpx = new WOPhysx();
+        WOPhysxGround* WOpx = new WOPhysxGround();
         WOpx->init();
-        WOpx->onCreate(path, scale, mst, gScene);
+        WOpx->onCreate(path, scale, mst);
 
         return WOpx;
     }
 
-    void WOPhysx::init() {
+    void WOPhysxGround::init() {
 
         /***     physx init stuff      ***/
         gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorcallback);
         gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, physx::PxTolerancesScale(), 0, NULL);
         physx::PxSceneDesc gSceneDesc(gPhysics->getTolerancesScale());
         gSceneDesc.flags.set(physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS);
-        gSceneDesc.gravity = physx::PxVec3(0.0f, 0.0f ,-9.81f);
+        gSceneDesc.gravity = physx::PxVec3(0.0f, 0.0f, -9.81f);
 
         gSceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
         gSceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(2);
 
-        dummy_gScene = gPhysics->createScene(gSceneDesc);
+        gScene = gPhysics->createScene(gSceneDesc);
     }
 
-    void WOPhysx::onCreate(const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst, physx::PxScene *gScene) {
+    void WOPhysxGround::onCreate(const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst) {
 
         WO::onCreate(path, scale, mst);
+        //  createMaterial creates a material according to the paramaters which describe the properties of the new material 
         physx::PxMaterial* gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
-
-        physx::PxRigidDynamic* dynamic = physx::PxCreateDynamic(*gPhysics, physx::PxTransform(physx::PxVec3(0, 0, 10.0f)), physx::PxSphereGeometry(3.0f), *gMaterial, 10.0f);
-        gScene->addActor(*dynamic);
-        physx::PxShape* shape = gPhysics->createShape(physx::PxBoxGeometry(1.5, 1.5, 1.5), *gMaterial, true);
-        physx::PxTransform t({ 0,0,0 });
+        //  creating a static rigid object this time instead of dynamic rigid (because ground doesn't move (well most of the time))
+        physx::PxRigidStatic* groundPlane = PxCreatePlane(*gPhysics, physx::PxPlane(0, 0, 1, 0), *gMaterial);
+        gScene->addActor(*groundPlane);
+        physx::PxShape* shape = gPhysics->createShape(physx::PxPlaneGeometry(), *gMaterial, true);
+        physx::PxTransform t({ 0, 0, 0 });
 
         actor = gPhysics->createRigidDynamic(t);
         actor->attachShape(*shape);
@@ -51,7 +52,7 @@ namespace Aftr {
         gScene->addActor(*actor);
     }
 
-    void WOPhysx::updatePoseFromPhysx() {
+    void WOPhysxGround::updatePoseFromPhysx() {
 
         physx::PxMat44 m(this->actor->getGlobalPose().q);
         Mat4 m2;
@@ -63,7 +64,7 @@ namespace Aftr {
         this->setPosition(this->actor->getGlobalPose().p.x, this->actor->getGlobalPose().p.y, this->actor->getGlobalPose().p.z);
     }
 
-    void WOPhysx::setPosition(float x, float y, float z) {
+    void WOPhysxGround::setPosition(float x, float y, float z) {
 
         WO::setPosition(x, y, z);
         physx::PxTransform t = this->actor->getGlobalPose();

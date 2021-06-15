@@ -13,9 +13,9 @@ namespace Aftr{
         ~WOPhysx();
         WOPhysx();
 
-        static WOPhysx* New(const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst);
+        static WOPhysx* New(const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst, physx::PxScene *gScene);
         void init();
-        void onCreate( const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst);
+        void onCreate( const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst, physx::PxScene *gScene);
         void updatePoseFromPhysx();
         void setPosition(float x, float y, float z);
 
@@ -23,9 +23,9 @@ namespace Aftr{
         physx::PxDefaultErrorCallback gErrorcallback;
         physx::PxRigidDynamic* actor = NULL;
         physx::PxFoundation* gFoundation = NULL;
-        //removed gPhysics and gScene to declare them in loadmap()
+      
         physx::PxPhysics* gPhysics;
-        physx::PxScene* gScene;
+        physx::PxScene* dummy_gScene;
     };
 }
 
