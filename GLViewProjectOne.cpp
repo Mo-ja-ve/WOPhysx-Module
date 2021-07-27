@@ -36,7 +36,6 @@
 #include "AftrGLRendererBase.h"
 #include <cstring>
 
-
 using namespace Aftr;
 //using namespace irrklang;
 
@@ -99,8 +98,53 @@ void GLViewProjectOne::updateWorld()
    Aftr::Vector v_lookDir(0, 0, 0);
    Aftr::Vector v_up(0, 0, 0);
 
+   int numBoxes = physx_boxes.size();
 
+   Vector camvec = this->cam->getPosition();
+   float camF[3] = { 1, 2 , 3 };
+   Vec2Float(camvec, &camF);
+   camPxActor->setPosition(camF[0], camF[1], camF[2]);
    
+   WOpxObj_ptr->gScene->simulate(0.1);
+   WOpxObj_ptr->gScene->fetchResults(true);
+   physx::PxU32 numActors = 0;
+   physx::PxActor** actors = this->WOpxObj_ptr->gScene->getActiveActors(numActors);
+   
+    std::vector <Vector> originalPos;
+    originalPos.resize(numBoxes);
+    for (int i = 0; i < numBoxes; i++) {
+         originalPos[i] = physx_boxes[i]->getPosition();
+    }
+   
+   for (physx::PxU32 i = 0; i < numActors; ++i) {
+       physx::PxActor* actor = actors[i];
+       //WOpxObj_ptr->updatePoseFromPhysx();
+       physx_boxes[0]->updatePoseFromPhysx();
+       physx_boxes[1]->updatePoseFromPhysx();
+       physx_boxes[2]->updatePoseFromPhysx();
+       physx_boxes[3]->updatePoseFromPhysx();
+       camPxActor->updatePoseFromPhysx();
+   }
+   
+   cam->setPosition(camPxActor->getPosition());
+
+   for (int i = 0; i < numBoxes; i++) {
+       if (originalPos[i] != physx_boxes[i]->getPosition()) {
+ 
+           msg.WOindex = physx_boxes[i]->pxWO_ID;
+           msg.trans_str[0] = physx_boxes[i]->getPose().toString();
+
+           float locF[3];
+           Vec2Float(physx_boxes[i]->getPosition(), &locF);
+           msg.xPos = locF[0];
+           msg.yPos = locF[1];
+           msg.zPos = locF[2];
+           msg.box_index = i;
+           client->sendNetMsgSynchronousTCP(msg);
+           //msg.onMessageArrived();
+       }
+   }
+
    //v_camPos = this->cam->getPosition();
    //irrklang::vec3df v_camPosinirr(v_camPos.x, v_camPos.y, v_camPos.z);
 
@@ -153,7 +197,7 @@ void GLViewProjectOne::onKeyDown( const SDL_KeyboardEvent& key )
 {
    GLView::onKeyDown( key );
    if( key.keysym.sym == SDLK_0 )
-      this->setNumPhysicsStepsPerRender( 1 );
+      //this->setNumPhysicsStepsPerRender( 1 );
 
     
    //  barrel rotation added upon keypress '1' and '2'
@@ -169,20 +213,23 @@ void GLViewProjectOne::onKeyDown( const SDL_KeyboardEvent& key )
      /*  this->worldLst->at(5)->rotateAboutGlobalX(-0.08);
        this->worldLst->at(5)->rotateAboutGlobalY(-0.08);*/
 
-      WOpxObj_ptr->gScene->simulate(0.1);
-      WOpxObj_ptr->gScene->fetchResults(true);
-      physx::PxU32 numActors = 0;
-      physx::PxActor** actors = this->WOpxObj_ptr->gScene->getActiveActors(numActors);
-      std::cout << std::endl << std::endl << "NUMBER OF ACTIVE ACTORS: " << numActors << std::endl << std::endl;
-      for (physx::PxU32 i = 0; i < numActors; ++i) {
-          physx::PxActor* actor = actors[i];
-          //WOpxObj_ptr->updatePoseFromPhysx();
-          box->updatePoseFromPhysx();
-          box2->updatePoseFromPhysx();
-      }
+      //WOpxObj_ptr->gScene->simulate(0.1);
+      //WOpxObj_ptr->gScene->fetchResults(true);
+      //physx::PxU32 numActors = 0;
+      //physx::PxActor** actors = this->WOpxObj_ptr->gScene->getActiveActors(numActors);
+      //std::cout << std::endl << std::endl << "NUMBER OF ACTIVE ACTORS: " << numActors << std::endl << std::endl;
+      //for (physx::PxU32 i = 0; i < numActors; ++i) {
+      //    physx::PxActor* actor = actors[i];
+      //    //WOpxObj_ptr->updatePoseFromPhysx();
+      //    box->updatePoseFromPhysx();
+      //    box2->updatePoseFromPhysx();
+      //    box3->updatePoseFromPhysx();
+      //    box4->updatePoseFromPhysx();
+      //    camPxActor->updatePoseFromPhysx();
+      //}
 
    }
-   
+
    if (key.keysym.sym == SDLK_3) {
 
        aftrColor4f new_specular(this->worldLst->at(6)->getModel()->getModelDataShared()->getModelMeshes().at(1)->getSkins().at(0).getSpecular());
@@ -256,18 +303,18 @@ void GLViewProjectOne::onKeyDown( const SDL_KeyboardEvent& key )
    }
 
    if (key.keysym.sym == SDLK_1) {
+       //ImGui::End();
+       //static int z;
 
-       static int z;
+       //NetMsgCreateWO_2 msg;
+       //msg.xPos = 100;
+       //msg.yPos = 200;
+       //msg.zPos = z * 10;
+       //z++;
 
-       NetMsgCreateWO_2 msg;
-       msg.xPos = 100;
-       msg.yPos = 200;
-       msg.zPos = z * 10;
-       z++;
-
-       client->sendNetMsgSynchronousTCP(msg);
+       //client->sendNetMsgSynchronousTCP(msg);
+       //msg.onMessageArrived();
    }
-
 }
 
 
@@ -361,21 +408,68 @@ void Aftr::GLViewProjectOne::loadMap()
    worldLst->push_back(WOpxGround);
 
    WOpxObj_ptr = static_cast<WOPhysxGround*>(WOpxGround->actor->userData);
-
-
+   
+   // wo 3
    WOPhysx* WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
-   WOpxobj->setPosition(49, 100, 10);
+   WOpxobj->setPosition(49, 100, 1110);
+   WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
+   WOpxobj->setLabel("FIRST BOX");
+   worldLst->push_back(WOpxobj);
+
+   physx_boxes.resize(physx_boxes.size()+1);
+   physx_boxes[0] = static_cast<WOPhysx*>(WOpxobj->actor->userData);
+   physx_boxes[0]->pxWO_ID = 3;
+
+   //std::cout << std::endl << worldLst->at(2)->getLabel() << std::endl;
+   
+   // wo 4
+   WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
+   WOpxobj->setPosition(50, 100, 1115);
+   WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
+   worldLst->push_back(WOpxobj);
+   
+   physx_boxes.resize(physx_boxes.size() + 1);
+   physx_boxes[1] = static_cast<WOPhysx*>(WOpxobj->actor->userData);
+   physx_boxes[1]->pxWO_ID = 4;
+
+   // wo 5
+   WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
+   WOpxobj->setPosition(52, 100, 1119);
    WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
    worldLst->push_back(WOpxobj);
 
-   box = static_cast<WOPhysx*>(WOpxobj->actor->userData);
-   
+   physx_boxes.resize(physx_boxes.size() + 1);
+   physx_boxes[2] = static_cast<WOPhysx*>(WOpxobj->actor->userData);
+   physx_boxes[2]->pxWO_ID = 5;
+
+   // wo 6
    WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
-   WOpxobj->setPosition(50, 100, 15);
+   WOpxobj->setPosition(52, 100, 1120);
    WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
    worldLst->push_back(WOpxobj);
-   
-   box2 = static_cast<WOPhysx*>(WOpxobj->actor->userData);
+
+   physx_boxes.resize(physx_boxes.size() + 1);
+   physx_boxes[3] = static_cast<WOPhysx*>(WOpxobj->actor->userData);
+   physx_boxes[3]->pxWO_ID = 6;
+
+   float camF[3];
+   Vec2Float(cam->getPosition(), &camF);
+
+   //worldLst->at(5)->setPosition(159, 159, 0.5);
+   //worldLst->at(6)->setPosition(169, 169, 0.5);
+   //worldLst->at(7)->setPosition(179, 179, 0.5);
+   //worldLst->at(8)->setPosition(189, 189, 0.5);
+
+   WOPhysx_cameraCollider *WOpxobj_cam = WOPhysx_cameraCollider::New(shinyRedPlasticCube, Vector(0.001, 0.001, 0.001), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
+   WOpxobj_cam->setPosition(camF[0], camF[1], camF[2]);
+   WOpxobj_cam->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
+   worldLst->push_back(WOpxobj_cam);
+   aftrColor4f new_specular(-10.0f);
+   aftrColor4f new_ambient(-10.0f);
+   WOpxobj_cam->getModel()->getModelDataShared()->getModelMeshes().at(0)->getSkins().at(0).setSpecular(new_specular);
+   WOpxobj_cam->getModel()->getModelDataShared()->getModelMeshes().at(0)->getSkins().at(0).setAmbient(new_ambient);
+
+   camPxActor = static_cast<WOPhysx_cameraCollider*>(WOpxobj_cam->actor->userData);
 
 
    //random barrel models i added in for first module project
@@ -396,20 +490,22 @@ void Aftr::GLViewProjectOne::loadMap()
    worldLst->push_back(wo);
    
 
+   wo = WO::New(boxbox, Vector(0.01, 0.01, 0.01), MESH_SHADING_TYPE::mstAUTO);
+   wo->setPosition(138, 130, 2.5);
+   wo->renderOrderType = RENDER_ORDER_TYPE::roOPAQUE;
+   ModelMeshSkin dinerheightmap(ManagerTexture::loadTexture(second_diner_texture));
+   dinerheightmap.setMeshShadingType(MESH_SHADING_TYPE::mstSMOOTH);
+   dinerheightmap.setAmbient(aftrColor4f(0.4f, 0.4f, 0.4f, 0.4f));
+   dinerheightmap.setDiffuse(aftrColor4f(1.0f, 1.0f, 1.0f, 0));
+   dinerheightmap.setSpecular(aftrColor4f(0.4f, 0.4f, 0.4f, 0));
+   
+   wo->getModel()->getModelDataShared()->getModelMeshes().at(3)->getSkin().setMeshShadingType(MESH_SHADING_TYPE::mstSMOOTH);
 
+   worldLst->push_back(wo);
 
-   //wo = WO::New(boxbox, Vector(0.01, 0.01, 0.01), MESH_SHADING_TYPE::mstAUTO);
-   //wo->setPosition(138, 130, 2.5);
-   //wo->renderOrderType = RENDER_ORDER_TYPE::roOPAQUE;
-   //ModelMeshSkin dinerheightmap(ManagerTexture::loadTexture(second_diner_texture));
-   //dinerheightmap.setMeshShadingType(MESH_SHADING_TYPE::mstSMOOTH);
-   //dinerheightmap.setAmbient(aftrColor4f(0.4f, 0.4f, 0.4f, 0.4f));
-   //dinerheightmap.setDiffuse(aftrColor4f(1.0f, 1.0f, 1.0f, 0));
-   //dinerheightmap.setSpecular(aftrColor4f(0.4f, 0.4f, 0.4f, 0));
-   //
-   //wo->getModel()->getModelDataShared()->getModelMeshes().at(3)->getSkin().setMeshShadingType(MESH_SHADING_TYPE::mstSMOOTH);
+   WOimgui* WOgui = WOimgui::New(nullptr, 10.0, 10.0);
+   worldLst->push_back(WOgui);
 
-   //worldLst->push_back(wo);
 
    ////Create the infinite grass plane that uses the Open Dynamics Engine (ODE)
    //wo = WOStatic::New( grass, Vector(1,1,1), MESH_SHADING_TYPE::mstFLAT );
@@ -503,7 +599,6 @@ void GLViewProjectOne::createProjectOneWayPoints()
    worldLst->push_back( wayPt );
 }
 
-
 //void GLViewProjectOne::audioContainer() {
 //    
 //    std::string sound4(ManagerEnvironmentConfiguration::getSMM() + "/sounds/sound4.wav");
@@ -528,3 +623,9 @@ void GLViewProjectOne::createProjectOneWayPoints()
 //
 //    s_3d->setVelocity(veloc);
 //}
+
+void GLViewProjectOne::Vec2Float(Vector vec, float (*camF)[3]) {
+    (*camF)[0] = vec.x;
+    (*camF)[1] = vec.y;
+    (*camF)[2] = vec.z;
+}

@@ -5,10 +5,19 @@
 #include "NetMsg.h"
 #include "NetMessengerClient.h"
 #include "NetMsgCreateWO_2.h"
+#include "vector.h"
 
+#include "WOImGui.h"
 #include "WOPhysx.h"
 #include "WOPhysxGround.h"
-
+#include "WOPhysx_cameraCollider.h"
+//#include "imgui.h"
+//#include "imgui_internal.h"
+//#include "imgui_impl_opengl3.h"
+//#include "imgui_impl_sdl.h"
+//#include "AftrImGuiIncludes.h"
+//#include "WOImGui_Demo.h"
+//#include "WOImGui.h"
 
 namespace Aftr
 {
@@ -41,14 +50,15 @@ public:
    virtual void onKeyDown( const SDL_KeyboardEvent& key );
    virtual void onKeyUp( const SDL_KeyboardEvent& key );
 
+   /*  physx stuff  */
    WOPhysxGround* WOpxObj_ptr;
-   WOPhysx* box;
-   WOPhysx* box2;
+   std::vector <WOPhysx*> physx_boxes;
+   WOPhysx_cameraCollider* camPxActor;
+   NetMsgCreateWO_2 msg;
 
-
+   void Vec2Float(Vector vec, float (*camF)[3]);
    NetMessengerClient* client;
-  
-   
+
 protected:
    GLViewProjectOne( const std::vector< std::string >& args );
    virtual void onCreate();
