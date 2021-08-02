@@ -34,6 +34,7 @@ namespace Aftr {
         dummy_gScene = gPhysics->createScene(gSceneDesc);
 
         pxWO_ID = 0;
+        physx_release = false;
     }
 
     void WOPhysx::onCreate(const std::string& path, const Vector& scale, Aftr::MESH_SHADING_TYPE mst, physx::PxScene *gScene) {
@@ -48,7 +49,7 @@ namespace Aftr {
 
         actor = gPhysics->createRigidDynamic(t);
         actor->attachShape(*shape);
-
+       
         actor->userData = this;
         gScene->addActor(*actor);
     }

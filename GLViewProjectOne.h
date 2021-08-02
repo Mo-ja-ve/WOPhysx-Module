@@ -7,11 +7,10 @@
 #include "NetMsgCreateWO_2.h"
 #include "vector.h"
 
-#include "WOImGui.h"
+#include "WO_imgui.h"
 #include "WOPhysx.h"
 #include "WOPhysxGround.h"
 #include "WOPhysx_cameraCollider.h"
-//#include "imgui.h"
 //#include "imgui_internal.h"
 //#include "imgui_impl_opengl3.h"
 //#include "imgui_impl_sdl.h"
@@ -51,13 +50,16 @@ public:
    virtual void onKeyUp( const SDL_KeyboardEvent& key );
 
    /*  physx stuff  */
-   WOPhysxGround* WOpxObj_ptr;
+   WOPhysxGround* WOpxObj_groundfloor;
    std::vector <WOPhysx*> physx_boxes;
    WOPhysx_cameraCollider* camPxActor;
    NetMsgCreateWO_2 msg;
 
+   void spawn_box();
    void Vec2Float(Vector vec, float (*camF)[3]);
    NetMessengerClient* client;
+   
+   int WOID = 8;
 
 protected:
    GLViewProjectOne( const std::vector< std::string >& args );

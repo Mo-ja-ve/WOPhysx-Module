@@ -105,10 +105,10 @@ void GLViewProjectOne::updateWorld()
    Vec2Float(camvec, &camF);
    camPxActor->setPosition(camF[0], camF[1], camF[2]);
    
-   WOpxObj_ptr->gScene->simulate(0.1);
-   WOpxObj_ptr->gScene->fetchResults(true);
+   WOpxObj_groundfloor->gScene->simulate(0.1);
+   WOpxObj_groundfloor->gScene->fetchResults(true);
    physx::PxU32 numActors = 0;
-   physx::PxActor** actors = this->WOpxObj_ptr->gScene->getActiveActors(numActors);
+   physx::PxActor** actors = this->WOpxObj_groundfloor->gScene->getActiveActors(numActors);
    
     std::vector <Vector> originalPos;
     originalPos.resize(numBoxes);
@@ -119,31 +119,35 @@ void GLViewProjectOne::updateWorld()
    for (physx::PxU32 i = 0; i < numActors; ++i) {
        physx::PxActor* actor = actors[i];
        //WOpxObj_ptr->updatePoseFromPhysx();
-       physx_boxes[0]->updatePoseFromPhysx();
-       physx_boxes[1]->updatePoseFromPhysx();
+       for (int j = 0; j < numBoxes; j++) {
+         physx_boxes[j]->updatePoseFromPhysx();
+       }
+
+       /*physx_boxes[1]->updatePoseFromPhysx();
        physx_boxes[2]->updatePoseFromPhysx();
-       physx_boxes[3]->updatePoseFromPhysx();
+       physx_boxes[3]->updatePoseFromPhysx();*/
        camPxActor->updatePoseFromPhysx();
    }
+
    
    cam->setPosition(camPxActor->getPosition());
 
-   for (int i = 0; i < numBoxes; i++) {
-       if (originalPos[i] != physx_boxes[i]->getPosition()) {
+   //for (int i = 0; i < numBoxes; i++) {
+   //    if (originalPos[i] != physx_boxes[i]->getPosition()) {
  
-           msg.WOindex = physx_boxes[i]->pxWO_ID;
-           msg.trans_str[0] = physx_boxes[i]->getPose().toString();
+   //        msg.WOindex = physx_boxes[i]->pxWO_ID;
+   //        msg.trans_str[0] = physx_boxes[i]->getPose().toString();
 
-           float locF[3];
-           Vec2Float(physx_boxes[i]->getPosition(), &locF);
-           msg.xPos = locF[0];
-           msg.yPos = locF[1];
-           msg.zPos = locF[2];
-           msg.box_index = i;
-           client->sendNetMsgSynchronousTCP(msg);
-           //msg.onMessageArrived();
-       }
-   }
+   //        float locF[3];
+   //        Vec2Float(physx_boxes[i]->getPosition(), &locF);
+   //        msg.xPos = locF[0];
+   //        msg.yPos = locF[1];
+   //        msg.zPos = locF[2];
+   //        msg.box_index = i;
+   //        client->sendNetMsgSynchronousTCP(msg);
+   //        //msg.onMessageArrived();
+   //    }
+   //}
 
    //v_camPos = this->cam->getPosition();
    //irrklang::vec3df v_camPosinirr(v_camPos.x, v_camPos.y, v_camPos.z);
@@ -209,7 +213,7 @@ void GLViewProjectOne::onKeyDown( const SDL_KeyboardEvent& key )
    //}
 
    if (key.keysym.sym == SDLK_2) 
-   {    
+   { 
      /*  this->worldLst->at(5)->rotateAboutGlobalX(-0.08);
        this->worldLst->at(5)->rotateAboutGlobalY(-0.08);*/
 
@@ -303,6 +307,17 @@ void GLViewProjectOne::onKeyDown( const SDL_KeyboardEvent& key )
    }
 
    if (key.keysym.sym == SDLK_1) {
+
+
+       //this->spawn_box();
+
+       std::cout << std::endl << "heloo!!!!!!!!!" << std::endl;
+       std::cout << std::endl << "heloo!!!!!!!!!" << std::endl;
+       std::cout << std::endl << "heloo!!!!!!!!!" << std::endl;
+       std::cout << std::endl << "heloo!!!!!!!!!" << std::endl;
+       std::cout << std::endl << "heloo!!!!!!!!!" << std::endl;
+       std::cout << std::endl << "heloo!!!!!!!!!" << std::endl;
+
        //ImGui::End();
        //static int z;
 
@@ -407,50 +422,60 @@ void Aftr::GLViewProjectOne::loadMap()
    WOpxGround->setLabel( "Grass" );
    worldLst->push_back(WOpxGround);
 
-   WOpxObj_ptr = static_cast<WOPhysxGround*>(WOpxGround->actor->userData);
+   WOpxObj_groundfloor = static_cast<WOPhysxGround*>(WOpxGround->actor->userData);
    
-   // wo 3
-   WOPhysx* WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
-   WOpxobj->setPosition(49, 100, 1110);
-   WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
-   WOpxobj->setLabel("FIRST BOX");
-   worldLst->push_back(WOpxobj);
+   //// wo 3
+   //WOPhysx* WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
+   //WOpxobj->setPosition(49, 100, 1110);
+   //WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
+   //WOpxobj->setLabel("FIRST BOX");
+   //worldLst->push_back(WOpxobj);
 
-   physx_boxes.resize(physx_boxes.size()+1);
-   physx_boxes[0] = static_cast<WOPhysx*>(WOpxobj->actor->userData);
-   physx_boxes[0]->pxWO_ID = 3;
+   //physx_boxes.resize(physx_boxes.size()+1);
+   //physx_boxes[0] = static_cast<WOPhysx*>(WOpxobj->actor->userData);
+   //physx_boxes[0]->pxWO_ID = 3;
 
-   //std::cout << std::endl << worldLst->at(2)->getLabel() << std::endl;
-   
-   // wo 4
-   WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
-   WOpxobj->setPosition(50, 100, 1115);
-   WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
-   worldLst->push_back(WOpxobj);
-   
-   physx_boxes.resize(physx_boxes.size() + 1);
-   physx_boxes[1] = static_cast<WOPhysx*>(WOpxobj->actor->userData);
-   physx_boxes[1]->pxWO_ID = 4;
+   //////std::cout << std::endl << worldLst->at(2)->getLabel() << std::endl;
+   ////
+   //// wo 4
+   //WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
+   //WOpxobj->setPosition(50, 100, 1115);
+   //WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
+   //worldLst->push_back(WOpxobj);
+   //
+   //physx_boxes.resize(physx_boxes.size() + 1);
+   //physx_boxes[1] = static_cast<WOPhysx*>(WOpxobj->actor->userData);
+   //physx_boxes[1]->pxWO_ID = 4;
 
-   // wo 5
-   WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
-   WOpxobj->setPosition(52, 100, 1119);
-   WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
-   worldLst->push_back(WOpxobj);
+   //// wo 5
+   //WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
+   //WOpxobj->setPosition(52, 100, 1119);
+   //WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
+   //worldLst->push_back(WOpxobj);
 
-   physx_boxes.resize(physx_boxes.size() + 1);
-   physx_boxes[2] = static_cast<WOPhysx*>(WOpxobj->actor->userData);
-   physx_boxes[2]->pxWO_ID = 5;
+   //physx_boxes.resize(physx_boxes.size() + 1);
+   //physx_boxes[2] = static_cast<WOPhysx*>(WOpxobj->actor->userData);
+   //physx_boxes[2]->pxWO_ID = 5;
 
-   // wo 6
-   WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
-   WOpxobj->setPosition(52, 100, 1120);
-   WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
-   worldLst->push_back(WOpxobj);
+   //// wo 6
+   //WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
+   //WOpxobj->setPosition(52, 100, 1120);
+   //WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
+   //worldLst->push_back(WOpxobj);
 
-   physx_boxes.resize(physx_boxes.size() + 1);
-   physx_boxes[3] = static_cast<WOPhysx*>(WOpxobj->actor->userData);
-   physx_boxes[3]->pxWO_ID = 6;
+   //physx_boxes.resize(physx_boxes.size() + 1);
+   //physx_boxes[3] = static_cast<WOPhysx*>(WOpxobj->actor->userData);
+   //physx_boxes[3]->pxWO_ID = 6;
+
+   //WOpxobj = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxGround->gScene);
+   //WOpxobj->setPosition(52, 100, 1020);
+   //WOpxobj->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
+   //worldLst->push_back(WOpxobj);
+
+   ////physx_boxes.resize(physx_boxes.size() + 1);
+   //physx_boxes.emplace_back( static_cast<WOPhysx*>(WOpxobj->actor->userData));
+   ////physx_boxes[4]->pxWO_ID = 6;
+
 
    float camF[3];
    Vec2Float(cam->getPosition(), &camF);
@@ -503,9 +528,18 @@ void Aftr::GLViewProjectOne::loadMap()
 
    worldLst->push_back(wo);
 
-   WOimgui* WOgui = WOimgui::New(nullptr, 10.0, 10.0);
+   WO_imgui* WOgui = WO_imgui::New(nullptr, 10.0, 10.0);
+   //WOgui->physxWO_ptr = physx_boxes[0];
+   WOgui->v = this;
    worldLst->push_back(WOgui);
 
+
+   //physx_boxes.resize(physx_boxes.size() + 1);
+   //physx_boxes.resize(physx_boxes.size() + 1);
+   //this->spawn_box(WOpxGround);
+   //this->spawn_box(WOpxGround);
+   //this->spawn_box(WOpxGround);
+   //this->spawn_box(WOpxGround);
 
    ////Create the infinite grass plane that uses the Open Dynamics Engine (ODE)
    //wo = WOStatic::New( grass, Vector(1,1,1), MESH_SHADING_TYPE::mstFLAT );
@@ -599,6 +633,35 @@ void GLViewProjectOne::createProjectOneWayPoints()
    worldLst->push_back( wayPt );
 }
 
+
+void GLViewProjectOne::spawn_box() {
+
+    std::string shinyRedPlasticCube(ManagerEnvironmentConfiguration::getSMM() + "/models/cube4x4x4redShinyPlastic_pp.wrl");
+
+    float camPosF[3];
+
+    Vector distance(20, 20, 40);
+
+    Vector spawnPosition = this->cam->getPosition() + (this->cam->getLookDirection() * distance);
+
+    Vec2Float(spawnPosition, &camPosF);
+        
+    WOPhysx* WOpxobj_spawn = WOPhysx::New(shinyRedPlasticCube, Vector(0.5, 0.5, 0.5), MESH_SHADING_TYPE::mstSMOOTH, WOpxObj_groundfloor->gScene);
+    WOpxobj_spawn->setPosition(camPosF[0], camPosF[1], camPosF[2]+5);
+
+    WOpxobj_spawn->renderOrderType = RENDER_ORDER_TYPE::roTRANSPARENT;
+    WOpxobj_spawn->setLabel("red box");
+    this->worldLst->push_back(WOpxobj_spawn);
+    WOID++;
+
+
+    unsigned int numBoxes = this->physx_boxes.size();
+    this->physx_boxes.resize(numBoxes+1);
+    
+    physx_boxes[physx_boxes.size()-1] = static_cast<WOPhysx*>(WOpxobj_spawn->actor->userData);
+    physx_boxes[physx_boxes.size()-1]->pxWO_ID = WOID;
+ }
+
 //void GLViewProjectOne::audioContainer() {
 //    
 //    std::string sound4(ManagerEnvironmentConfiguration::getSMM() + "/sounds/sound4.wav");
@@ -607,7 +670,7 @@ void GLViewProjectOne::createProjectOneWayPoints()
 //
 //    std::string sound3D(ManagerEnvironmentConfiguration::getSMM() + "/sounds/sound5.wav");
 //    
-//
+//      
 //    //ISoundEngine* engine = createIrrKlangDevice();
 //    //ISound* s = engine->play2D(cstr, true);
 //

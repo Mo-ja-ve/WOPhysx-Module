@@ -28,6 +28,7 @@ namespace Aftr{
         physx::PxScene* dummy_gScene;
 
         int pxWO_ID;
+        bool physx_release;
     };
 }
 
